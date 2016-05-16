@@ -10,12 +10,14 @@ Base = declarative_base()
 Session = sessionmaker(bind=engine)
 session = Session()
 
+
 def init_db():
     Base.metadata.create_all(engine)
 
+
 class Registiration(Base):
     __tablename__ = "registirations"
- 
+
     email = Column(String(100), primary_key=True, nullable=False)
     name = Column(String(100))
 
@@ -25,9 +27,11 @@ class Registiration(Base):
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def hello():
     return render_template('hello.html')
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -42,27 +46,32 @@ def register():
     except IntegrityError:
         session.rollback()
         registered = False
-    return render_template('confirmation.html', registered=registered, email=email, name=name)
+    return render_template('confirmation.html',
+                           registered=registered,
+                           email=email,
+                           name=name)
+
 
 @app.route("/winner")
 def winner():
     registirations = session.query(Registiration).all()
-    number_of_registirations = len(registirations) 
+    number_of_registirations = len(registirations)
     if number_of_registirations < 3:
         return render_template('too_little_registirations.html',
-                                number_of_registirations=number_of_registirations)
+                               number_of_registirations=number_of_registirations)
     registirations_list = []
     for registiration in registirations:
         registirations_list.append({'name': registiration.name,
                                     'email': registiration.email,
                                     'winner': False})
 
-    winner_index = random.randint(0,number_of_registirations - 1)
-    print winner_index 
+    winner_index = random.randint(0, number_of_registirations - 1)
+    print winner_index
     registirations_list[winner_index]['winner'] = True
     return render_template('winner.html',
                            registirations=registirations_list,
                            winner_name=registirations_list[winner_index]['name'])
+
 
 @app.route('/resetdb', methods=['POST'])
 def reset_db():
